@@ -1,0 +1,81 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["20", "22", "24"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - name: Package contents
+        run: npm pack --dry-run
+
+  # Older Angular majors, down to 17 (the first with signal inputs).
+  angular:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { angular: "17", zone: "0.14" }
+          - { angular: "18", zone: "0.14" }
+          - { angular: "19", zone: "0.15" }
+          - { angular: "20", zone: "0.16" }
+          - { angular: "21", zone: "0.16" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: >-
+          npm install --no-save
+          @angular/core@${{ matrix.angular }} @angular/common@${{ matrix.angular }}
+          @angular/compiler@${{ matrix.angular }} @angular/platform-browser@${{ matrix.angular }}
+          zone.js@${{ matrix.zone }}
+      - run: npm test
+
+  # A real `ng new --ssr` app on the packed package: Angular compiler,
+  # esbuild, strict types and prerendering, then Chromium against soketi.
+  # The node e2e tests run against the same soketi (no channel history there,
+  # so the rewind test is skipped).
+  cli:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        angular: ["17", "22"]
+    services:
+      soketi:
+        image: quay.io/soketi/soketi:1.6-16-debian
+        ports: ["6001:6001"]
+        env:
+          SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESSAGES: "true"
+    env:
+      HIBIRA_E2E_APP_ID: app-id
+      HIBIRA_E2E_KEY: app-key
+      HIBIRA_E2E_SECRET: app-secret
+      HIBIRA_E2E_HOST: 127.0.0.1
+      HIBIRA_E2E_PORT: "6001"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run test:e2e
+      - run: test/fixture.sh ${{ matrix.angular }} "$RUNNER_TEMP"
+      - run: npm install --no-save playwright && npx playwright install --with-deps chromium
+      - run: node test/fixture/check.mjs "$RUNNER_TEMP/fixture/dist/fixture/browser"
