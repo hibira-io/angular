@@ -1,4 +1,5 @@
 // Compiled by `npm run typecheck`, never run.
+import EncryptedPusher from 'pusher-js/with-encryption';
 import { Component, Injectable, inject, Injector, input, signal } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import {
@@ -57,3 +58,4 @@ export async function server(pusher: { trigger(c: string, e: string, d: any, x?:
   const r = await streamToChannel(pusher, 'private-ai', ['a', 'b'], { meta: { model: 'm' } });
   return r.id + r.text;
 }
+export const encrypted = provideHibira({ appKey: 'key', Pusher: EncryptedPusher });

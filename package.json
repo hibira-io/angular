@@ -1,6 +1,6 @@
 {
   "name": "@hibira-io/angular",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Angular signals for pusher-js on Hibira and other Pusher-compatible servers: shared channels, events, presence, connection state, client events, and LLM token streaming with streamToChannel",
   "keywords": [
     "angular",

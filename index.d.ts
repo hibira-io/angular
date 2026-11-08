@@ -37,6 +37,11 @@ export interface HibiraConfig {
    * A client you pass is never disconnected for you.
    */
   client?: Pusher | (() => Pusher);
+  /**
+   * The pusher-js class to open the connection with. Pass the one from
+   * `pusher-js/with-encryption` to use `private-encrypted-` channels.
+   */
+  Pusher?: new (key: string, options: Options) => Pusher;
 }
 
 export interface Hibira {
