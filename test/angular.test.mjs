@@ -355,3 +355,21 @@ test(`${v} without provideHibira everything stays empty`, async () => {
   assert.equal(out.pusher, null);
   assert.equal(out.channel(), null);
 });
+
+test(`${v} provideHibira opens the connection with the Pusher class it is given`, async () => {
+  const made = [];
+  class Custom {
+    constructor(key, options) {
+      made.push([key, options.wsHost]);
+    }
+    disconnect() {
+      this.disconnected = true;
+    }
+  }
+  const appRef = await app([provideHibira({ appKey: 'k', Pusher: Custom })]);
+  const pusher = injectPusher({ injector: appRef.injector });
+  assert.ok(pusher instanceof Custom);
+  assert.deepEqual(made, [['k', 'ws.hibira.io']]);
+  appRef.destroy();
+  assert.equal(pusher.disconnected, true);
+});

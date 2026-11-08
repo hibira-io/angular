@@ -169,6 +169,24 @@ environment then. On the Free plan, add your site's origin (for example
 `http://localhost:4200`) to the app's allowed origins, or browsers can't
 connect.
 
+## Encrypted channels
+
+On `private-encrypted-` channels your backend encrypts each event and only
+subscribers can read it; Hibira relays ciphertext it cannot decrypt. The
+default browser build of pusher-js cannot decrypt, so pass the build that includes encryption:
+
+```js
+import Pusher from 'pusher-js/with-encryption';
+
+provideHibira({ appKey, Pusher, options: { channelAuthorization: { endpoint: '/api/hibira/auth' } } });
+```
+
+On the backend, give the `pusher` package a 32-byte key (`openssl rand -base64 32`)
+as `encryptionMasterKeyBase64`. It then encrypts what you trigger on these
+channels, and `authorizeChannel` returns the channel's key to the subscriber.
+`injectEvent` and `injectStream` get the decrypted data as usual. Client events
+(`injectTrigger`) are not allowed on encrypted channels.
+
 ## Streaming LLM output
 
 Send the model's stream from your backend with `streamToChannel()`. It
@@ -335,3 +353,5 @@ MIT
 LLM 串流用後端的 `streamToChannel()` 送出、前端的 `injectStream()` 組回全文，
 開啟頻道歷史後加上 `rewind: true`，重新整理或斷線也不會漏字。
 Laravel AI SDK 的 agent 串流用 `injectAgentStream()`。SSR／預先渲染時不會建立連線。
+端對端加密的 `private-encrypted-` 頻道：傳入 `pusher-js/with-encryption` 的 `Pusher`。
+

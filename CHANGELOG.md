@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- `provideHibira({ Pusher })`: the pusher-js class to open the connection
+  with. Pass the one from `pusher-js/with-encryption` to use end-to-end
+  encrypted `private-encrypted-` channels; the default browser build of
+  pusher-js cannot decrypt them. README: new "Encrypted channels" section.
+- README: cover image with real screenshots.
+
 ## 0.1.0
 
 - First release. `provideHibira()` and the signal-based inject functions

@@ -29,7 +29,7 @@ import {
   untracked,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import Pusher from 'pusher-js';
+import DefaultPusher from 'pusher-js';
 import { acquireChannel, hibiraOptions, isClientEvent, presenceMembers, releaseChannel } from './client.js';
 import { STREAM_EVENT, createStreamStore, followStream, latestStream } from './stream.js';
 import { AGENT_EVENTS, createAgentStore, latestRun } from './agent.js';
@@ -53,12 +53,15 @@ export const HIBIRA = new InjectionToken('HIBIRA');
  *   to use instead, or a function returning one; the function runs in an
  *   injection context, so `() => inject(EchoService).echo.connector.pusher`
  *   works. A client you pass is never disconnected for you.
+ * @param {Function} [config.Pusher] the pusher-js class to open the
+ *   connection with; pass the one from `pusher-js/with-encryption` for
+ *   `private-encrypted-` channels
  */
 export function provideHibira(config = {}) {
   return makeEnvironmentProviders([{ provide: HIBIRA, useFactory: () => createHibira(config) }]);
 }
 
-function createHibira({ appKey, options, client }) {
+function createHibira({ appKey, options, client, Pusher = DefaultPusher }) {
   const injector = inject(Injector);
   const browser = isPlatformBrowser(inject(PLATFORM_ID));
   let pusher = null;
